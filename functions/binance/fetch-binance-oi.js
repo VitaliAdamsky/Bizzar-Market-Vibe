@@ -4,13 +4,19 @@ const { calculateCloseTime } = require("../utility/calculate-close-time.js");
 const {
   getIntervalDurationMs,
 } = require("../utility/get-interval-duration-ms.js");
+const { getPLimit } = require("../shared/utility/p-limit.js");
+const { delay } = require("../shared/delay/delay.js");
+
+const CONCURRENCY_LIMIT = Number(process.env.CONCURRENCY_LIMIT) || 20;
 
 async function fetchBinanceOi(coins, timeframe, limit) {
-  const binanceInterval = getBinanceKlineInterval(timeframe);
+  const limitConcurrency = await getPLimit(CONCURRENCY_LIMIT);
 
-  const promises = coins.map(async (coin) => {
+  const binanceInterval = getBinanceKlineInterval(timeframe);
+  const intervalMs = getIntervalDurationMs(timeframe);
+
+  const fetchOiData = async (coin) => {
     try {
-      // Configure headers for Binance
       const headers = new Headers();
       headers.set(
         "User-Agent",
@@ -22,15 +28,16 @@ async function fetchBinanceOi(coins, timeframe, limit) {
       headers.set("Referer", "https://www.binance.com/");
 
       const url = binanceOiUrl(coin.symbol, binanceInterval, limit);
-      const intervalMs = getIntervalDurationMs(timeframe);
+      await delay(Number(process.env.FETCH_DELAY) || 100);
       const response = await fetch(url, { headers });
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Error fetching ${coin.symbol}:`, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const responseData = await response.json();
 
+      const responseData = await response.json();
       if (!Array.isArray(responseData)) {
         console.error(
           `Invalid response structure for ${coin.symbol}:`,
@@ -39,21 +46,16 @@ async function fetchBinanceOi(coins, timeframe, limit) {
         throw new Error(`Invalid response structure for ${coin.symbol}`);
       }
 
-      // Сортировка по времени
       const sortedData = responseData.sort(
         (a, b) => Number(a.timestamp) - Number(b.timestamp)
       );
 
-      // Обработка данных
       const data = sortedData.map((entry, index, arr) => {
         const currentValue = Number(entry.sumOpenInterestValue);
-
-        // Вычисление изменения OI
         let openInterestChange = null;
 
         if (index > 0) {
           const prevValue = Number(arr[index - 1].sumOpenInterestValue);
-
           if (prevValue !== 0) {
             openInterestChange = Number(
               (
@@ -78,10 +80,8 @@ async function fetchBinanceOi(coins, timeframe, limit) {
         };
       });
 
-      // Удаляем только первый элемент (где openInterestChange = null)
       const cleanedData = data.slice(1, -1);
 
-      // Возвращаем полный объект с защитой от отсутствия полей
       return {
         symbol: coin.symbol,
         exchanges: coin.exchanges || [],
@@ -93,7 +93,11 @@ async function fetchBinanceOi(coins, timeframe, limit) {
       console.error(`Error processing ${coin.symbol}:`, error);
       return { symbol: coin.symbol, data: [] };
     }
-  });
+  };
+
+  const promises = coins.map((coin) =>
+    limitConcurrency(() => fetchOiData(coin))
+  );
 
   return Promise.all(promises);
 }

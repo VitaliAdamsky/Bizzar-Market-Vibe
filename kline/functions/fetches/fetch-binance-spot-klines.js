@@ -3,10 +3,16 @@ const {
 } = require("../intervals/get-binance-kline-interval.js");
 const { binanceSpotUrl } = require("../../urls/binance-sport-url.js");
 
+const { getPLimit } = require("@shared/utility/p-limit.js");
+const { delay } = require("@shared/delay/delay.js");
+
+const CONCURRENCY_LIMIT = Number(process.env.CONCURRENCY_LIMIT) || 20;
+
 async function fetchBinanceSpotKlines(coins, timeframe, limit) {
+  const limitConcurrency = await getPLimit(CONCURRENCY_LIMIT);
   const binanceInterval = getBinanceKlineInterval(timeframe);
 
-  const promises = coins.map(async (coin) => {
+  const fetchKlineForCoin = async (coin) => {
     try {
       const headers = new Headers();
       headers.set(
@@ -19,8 +25,9 @@ async function fetchBinanceSpotKlines(coins, timeframe, limit) {
       headers.set("Referer", "https://www.binance.com/");
 
       const url = binanceSpotUrl(coin.symbol, binanceInterval, limit);
-
+      await delay(Number(process.env.FETCH_DELAY) || 100);
       const response = await fetch(url, { headers });
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Error fetching ${coin.symbol}:`, errorText);
@@ -58,7 +65,11 @@ async function fetchBinanceSpotKlines(coins, timeframe, limit) {
       console.error(`Error processing ${coin.symbol}:`, error);
       return { success: false, symbol: coin.symbol };
     }
-  });
+  };
+
+  const promises = coins.map((coin) =>
+    limitConcurrency(() => fetchKlineForCoin(coin))
+  );
 
   return Promise.all(promises);
 }

@@ -29,8 +29,19 @@
     "dayjs": "^1.11.13",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "module-alias": "^2.2.3",
     "node-cache": "^5.1.2",
     "node-telegram-bot-api": "^0.66.0",
+    "p-limit": "^6.2.0",
+    "pako": "^2.1.0",
     "pg": "^8.15.6"
+  },
+  "_moduleAliases": {
+    "@functions": "functions",
+    "@shared": "functions/shared",
+    "@kline": "kline",
+    "@oi": "oi",
+    "@fr": "fr",
+    "@coins": "coins"
   }
 }

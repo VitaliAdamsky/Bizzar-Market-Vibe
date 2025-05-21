@@ -2,7 +2,7 @@ const {
   validateRequestParams,
 } = require("../../functions/shared/validators/validate-request-params.js");
 
-const { getKlineCache } = require("../functions/kline-cache.js");
+const { getCompressedKlineCache } = require("../functions/kline-cache.js");
 
 const {
   initializeKlineStore,
@@ -12,7 +12,7 @@ async function getKlineDataController(req, res, next) {
   try {
     const { timeframe } = validateRequestParams(req.query);
 
-    const data = getKlineCache(timeframe);
+    const data = getCompressedKlineCache(timeframe);
 
     // 3) Return coins array as JSON
     return res.status(200).json(data);

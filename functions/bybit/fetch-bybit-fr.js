@@ -1,15 +1,24 @@
 const { bybitFrUrl } = require("./bybit-fr-url.js");
+const { getPLimit } = require("../shared/utility/p-limit.js");
+const { delay } = require("../shared/delay/delay.js");
+
+const CONCURRENCY_LIMIT = Number(process.env.CONCURRENCY_LIMIT) || 20;
 
 async function fetchBybitFr(coins, limit) {
-  const promises = coins.map(async (coin) => {
+  const limitConcurrency = await getPLimit(CONCURRENCY_LIMIT);
+
+  const fetchFundingRate = async (coin) => {
     try {
       const url = bybitFrUrl(coin.symbol, limit);
+      await delay(Number(process.env.FETCH_DELAY) || 100);
       const response = await fetch(url);
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Error fetching ${coin.symbol}:`, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
       const responseData = await response.json();
 
       if (
@@ -20,23 +29,20 @@ async function fetchBybitFr(coins, limit) {
         throw new Error(`Invalid response for ${coin.symbol}`);
       }
 
-      // 1. Сортировка по времени (от старых к новым)
       const rawEntries = responseData.result.list
         .map((entry) => ({
           ...entry,
           fundingRateTimestamp: Number(entry.fundingRateTimestamp),
           fundingRate: Number(entry.fundingRate),
         }))
-        .sort((a, b) => a.fundingRateTimestamp - b.fundingRateTimestamp); // Убедитесь, что данные в правильном порядке
+        .sort((a, b) => a.fundingRateTimestamp - b.fundingRateTimestamp);
 
-      // 2. Вычисляем интервал между записями (в миллисекундах)
       const baseInterval =
         rawEntries.length >= 2
           ? rawEntries[1].fundingRateTimestamp -
             rawEntries[0].fundingRateTimestamp
           : 8 * 3600 * 1000;
 
-      // 3. Обработка данных
       const data = rawEntries.map((entry, index, arr) => {
         const currentRate = entry.fundingRate;
         const openTime = entry.fundingRateTimestamp;
@@ -52,7 +58,7 @@ async function fetchBybitFr(coins, limit) {
               (((currentRate - prevRate) / Math.abs(prevRate)) * 100).toFixed(2)
             );
           } else {
-            fundingRateChange = currentRate !== 0 ? 100 : null; // Если предыдущий 0, но текущий > 0 → +100%
+            fundingRateChange = currentRate !== 0 ? 100 : null;
           }
         }
 
@@ -69,16 +75,20 @@ async function fetchBybitFr(coins, limit) {
 
       return {
         symbol: coin.symbol,
-        exchanges: coin.exchanges,
-        imageUrl: coin.imageUrl,
-        category: coin.category,
+        exchanges: coin.exchanges || [],
+        imageUrl: coin.imageUrl || "",
+        category: coin.category || "",
         data: data.slice(1),
       };
     } catch (error) {
       console.error(`Error processing ${coin.symbol}:`, error);
       return { symbol: coin.symbol, data: [] };
     }
-  });
+  };
+
+  const promises = coins.map((coin) =>
+    limitConcurrency(() => fetchFundingRate(coin))
+  );
 
   return Promise.all(promises);
 }

@@ -1,8 +1,8 @@
 // server.js
 require("dotenv").config();
+require("module-alias/register");
 
 const { initializeApp } = require("./app/initialize-app.js");
-
 const { scheduleSelfPing } = require("./jobs/self-ping.js");
 
 const {

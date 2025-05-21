@@ -95,7 +95,8 @@ async function fetchKlineData(timeframe, limit) {
   const lastOpenTime =
     bybitKlinePerpData[0]?.data?.at(-1)?.openTime ??
     bybitKlinePerpData[0]?.data?.at(-1)?.openTime;
-  // const expirationTime = calculateExpirationTime(lastOpenTime, timeframe);
+
+  const expirationTime = calculateExpirationTime(lastOpenTime, timeframe);
 
   let data = mergeSpotWithPerps(
     [...binanceKlinePerpData, ...bybitKlinePerpData],
@@ -105,7 +106,7 @@ async function fetchKlineData(timeframe, limit) {
   //4. Normalize and merge
   data = normalizeKlineData([...data]);
 
-  return { expirationTime: 0, data };
+  return { expirationTime, data };
 }
 
 module.exports = { fetchKlineData };

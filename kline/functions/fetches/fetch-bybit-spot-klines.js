@@ -3,15 +3,23 @@ const {
 } = require("../intervals/get-bybit-kline-interval.js");
 const { bybitSpotUrl } = require("../../urls/bybit-spot-url.js");
 
+const { getPLimit } = require("@shared/utility/p-limit.js");
+const { delay } = require("@shared/delay/delay.js");
+
+const CONCURRENCY_LIMIT = Number(process.env.CONCURRENCY_LIMIT) || 20;
+
 async function fetchBybitSpotKlines(coins, timeframe, limit) {
+  const limitConcurrency = await getPLimit(CONCURRENCY_LIMIT);
+
   const bybitInterval = getBybitKlineInterval(timeframe);
 
-  const promises = coins.map(async (coin) => {
+  const fetchKlineForCoin = async (coin) => {
     try {
       const url = bybitSpotUrl(coin.symbol, bybitInterval, limit);
 
-      const response = await fetch(url);
+      await delay(Number(process.env.FETCH_DELAY) || 100);
 
+      const response = await fetch(url);
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Error fetching ${coin.symbol}:`, errorText);
@@ -41,8 +49,6 @@ async function fetchBybitSpotKlines(coins, timeframe, limit) {
           closePrice: Number(entry[4]),
         }));
 
-      // Drop the last candle (incomplete current period)
-
       return {
         success: true,
         data: {
@@ -50,14 +56,18 @@ async function fetchBybitSpotKlines(coins, timeframe, limit) {
           category: coin.category || "unknown",
           exchanges: coin.exchanges || [],
           imageUrl: coin.imageUrl || "assets/img/noname.png",
-          data: data.slice(0, -1),
+          data: data.slice(0, -1), // Drop the last candle (incomplete)
         },
       };
     } catch (error) {
       console.error(`Error processing ${coin.symbol}:`, error);
       return { success: false, symbol: coin.symbol };
     }
-  });
+  };
+
+  const promises = coins.map((coin) =>
+    limitConcurrency(() => fetchKlineForCoin(coin))
+  );
 
   return Promise.all(promises);
 }

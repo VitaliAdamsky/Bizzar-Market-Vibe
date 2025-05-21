@@ -3,10 +3,16 @@ const {
 } = require("../intervals/get-binance-kline-interval.js");
 const { binancePerpsUrl } = require("../../urls/binance-perps-url.js");
 
+const { getPLimit } = require("@shared/utility/p-limit.js");
+const { delay } = require("@shared/delay/delay.js");
+
+const CONCURRENCY_LIMIT = Number(process.env.CONCURRENCY_LIMIT) || 20;
+
 async function fetchBinancePerpKlines(coins, timeframe, limit) {
+  const limitConcurrency = await getPLimit(CONCURRENCY_LIMIT);
   const binanceInterval = getBinanceKlineInterval(timeframe);
 
-  const promises = coins.map(async (coin) => {
+  const fetchKlineForCoin = async (coin) => {
     try {
       // Configure headers for Binance
       const headers = new Headers();
@@ -20,7 +26,7 @@ async function fetchBinancePerpKlines(coins, timeframe, limit) {
       headers.set("Referer", "https://www.binance.com/");
 
       const url = binancePerpsUrl(coin.symbol, binanceInterval, limit);
-
+      await delay(Number(process.env.FETCH_DELAY) || 100);
       const response = await fetch(url, { headers });
       if (!response.ok) {
         const errorText = await response.text();
@@ -82,8 +88,12 @@ async function fetchBinancePerpKlines(coins, timeframe, limit) {
       console.error(`Error processing ${coin.symbol}:`, error);
       return { success: false, symbol: coin.symbol };
     }
-  });
+  };
 
+  // Limit concurrent fetches
+  const promises = coins.map((coin) =>
+    limitConcurrency(() => fetchKlineForCoin(coin))
+  );
   return Promise.all(promises);
 }
 

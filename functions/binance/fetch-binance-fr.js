@@ -1,7 +1,13 @@
 const { binanceFrUrl } = require("./binance-fr-url.js");
+const { getPLimit } = require("../shared/utility/p-limit.js");
+const { delay } = require("../shared/delay/delay.js");
+
+const CONCURRENCY_LIMIT = Number(process.env.CONCURRENCY_LIMIT) || 20;
 
 async function fetchBinanceFr(coins, limit) {
-  const promises = coins.map(async (coin) => {
+  const limitConcurrency = await getPLimit(CONCURRENCY_LIMIT);
+
+  const fetchFrData = async (coin) => {
     try {
       const headers = new Headers();
       headers.set(
@@ -14,6 +20,7 @@ async function fetchBinanceFr(coins, limit) {
       headers.set("Referer", "https://www.binance.com/");
 
       const url = binanceFrUrl(coin.symbol, limit);
+      await delay(Number(process.env.FETCH_DELAY) || 100);
       const response = await fetch(url, { headers });
 
       if (!response.ok) {
@@ -21,6 +28,7 @@ async function fetchBinanceFr(coins, limit) {
         console.error(`Error fetching ${coin.symbol}:`, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
       const responseData = await response.json();
 
       if (!Array.isArray(responseData)) {
@@ -28,42 +36,36 @@ async function fetchBinanceFr(coins, limit) {
         throw new Error(`Invalid response for ${coin.symbol}`);
       }
 
-      // Извлечение и сортировка данных
       const rawEntries = responseData
         .map((entry) => ({
           fundingTime: Number(entry.fundingTime),
           fundingRate: Number(entry.fundingRate),
         }))
-        .sort((a, b) => a.fundingTime - b.fundingTime); // Убедитесь, что время возрастает
+        .sort((a, b) => a.fundingTime - b.fundingTime);
 
-      // Вычисляем базовый интервал между записями
       const baseInterval =
         rawEntries.length >= 2
           ? rawEntries[1].fundingTime - rawEntries[0].fundingTime
           : 8 * 3600 * 1000;
 
-      // Обработка данных
       const data = rawEntries.map((entry, index, arr) => {
         const currentOpenTime = entry.fundingTime;
         const currentRate = Number(entry.fundingRate);
         const closeTime = currentOpenTime + baseInterval - 1;
 
-        // Вычисление изменения fundingRate
         let fundingRateChange = null;
 
         if (index > 0) {
           const prevRate = arr[index - 1].fundingRate;
 
           if (prevRate !== 0) {
-            // Стандартный % изменения: (текущий - предыдущий) / предыдущий * 100
             fundingRateChange = Number(
               (((currentRate - prevRate) / Math.abs(prevRate)) * 100).toFixed(2)
             );
           } else {
-            // Если предыдущий = 0:
-            if (currentRate > 0) fundingRateChange = 100; // Рост с 0 до +x%
-            if (currentRate < 0) fundingRateChange = -100; // Падение с 0 до -x%
-            if (currentRate === 0) fundingRateChange = 0; // Нет изменений
+            if (currentRate > 0) fundingRateChange = 100;
+            if (currentRate < 0) fundingRateChange = -100;
+            if (currentRate === 0) fundingRateChange = 0;
           }
         }
 
@@ -89,7 +91,11 @@ async function fetchBinanceFr(coins, limit) {
       console.error(`Error processing ${coin.symbol}:`, error);
       return { symbol: coin.symbol, data: [] };
     }
-  });
+  };
+
+  const promises = coins.map((coin) =>
+    limitConcurrency(() => fetchFrData(coin))
+  );
 
   return Promise.all(promises);
 }

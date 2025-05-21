@@ -1,17 +1,24 @@
 const { getBybitOiInterval } = require("./get-bybit-oi-interval.js");
+const { getPLimit } = require("../shared/utility/p-limit.js");
 const { bybitOiUrl } = require("./bybit-oi-url.js");
 const { calculateCloseTime } = require("../utility/calculate-close-time.js");
 const {
   getIntervalDurationMs,
 } = require("../utility/get-interval-duration-ms.js");
+const { delay } = require("../shared/delay/delay.js");
+
+const CONCURRENCY_LIMIT = Number(process.env.CONCURRENCY_LIMIT) || 20;
 
 async function fetchBybitOi(coins, timeframe, limit) {
+  const limitConcurrency = await getPLimit(CONCURRENCY_LIMIT);
+
   const bybitInterval = getBybitOiInterval(timeframe);
   const intervalMs = getIntervalDurationMs(timeframe);
 
-  const promises = coins.map(async (coin) => {
+  const fetchOi = async (coin) => {
     try {
       const url = bybitOiUrl(coin.symbol, bybitInterval, limit);
+      await delay(Number(process.env.FETCH_DELAY) || 100);
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -31,6 +38,7 @@ async function fetchBybitOi(coins, timeframe, limit) {
       }
 
       const rawEntries = responseData.result.list;
+
       const data = rawEntries
         .sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
         .map((entry, index, arr) => {
@@ -63,7 +71,6 @@ async function fetchBybitOi(coins, timeframe, limit) {
           };
         });
 
-      // Удаляем только первый элемент (где openInterestChange = null)
       const cleanedData = data.slice(1, -1);
 
       return {
@@ -77,7 +84,9 @@ async function fetchBybitOi(coins, timeframe, limit) {
       console.error(`Error processing ${coin.symbol}:`, error);
       return { symbol: coin.symbol, data: [] };
     }
-  });
+  };
+
+  const promises = coins.map((coin) => limitConcurrency(() => fetchOi(coin)));
 
   return Promise.all(promises);
 }

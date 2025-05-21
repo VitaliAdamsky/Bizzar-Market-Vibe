@@ -8,16 +8,23 @@ const {
   getBybitKlineInterval,
 } = require("../intervals/get-bybit-kline-interval");
 const { bybitPerpUrl } = require("../../urls/bybit-perps-url.js");
+const { getPLimit } = require("@shared/utility/p-limit.js");
+const { delay } = require("@shared/delay/delay.js");
+
+const CONCURRENCY_LIMIT = Number(process.env.CONCURRENCY_LIMIT) || 20;
 
 async function fetchBybitPerpKlines(coins, timeframe, limit) {
+  const limitConcurrency = await getPLimit(CONCURRENCY_LIMIT);
+
   const intervalMs = getIntervalDurationMs(timeframe);
   const bybitInterval = getBybitKlineInterval(timeframe);
 
-  const promises = coins.map(async (coin) => {
+  const fetchKlineForCoin = async (coin) => {
     try {
       const url = bybitPerpUrl(coin.symbol, bybitInterval, limit);
-
+      await delay(Number(process.env.FETCH_DELAY) || 100);
       const response = await fetch(url);
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Error fetching ${coin.symbol}:`, errorText);
@@ -65,7 +72,11 @@ async function fetchBybitPerpKlines(coins, timeframe, limit) {
       console.error(`Error processing ${coin.symbol}:`, error);
       return { success: false, symbol: coin.symbol };
     }
-  });
+  };
+
+  const promises = coins.map((coin) =>
+    limitConcurrency(() => fetchKlineForCoin(coin))
+  );
 
   return Promise.all(promises);
 }

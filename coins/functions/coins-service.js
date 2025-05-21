@@ -1,5 +1,10 @@
-const { binanceDominantCache, bybitDominantCache } = require("./coins-cache");
+// coins-service.js
+const { binanceDominantCache } = require("./coins-cache");
 const ServantsConfigOperator = require("../../functions/global/servants/servants-config");
+const {
+  compressToBase64,
+  decompressFromBase64,
+} = require("../../functions/shared/utility/compression-utils"); // Adjust path
 
 // Fetch coins from DB
 async function fetchDominantCoinsFromDb(dominant, coinType) {
@@ -8,9 +13,7 @@ async function fetchDominantCoinsFromDb(dominant, coinType) {
     throw new Error("Missing COINS API configuration");
   }
 
-  console.log("COINS API", config.coinsApi);
   const url = `${config.coinsApi}/api/coins/sorted?dominant=${dominant}&coinType=${coinType}`;
-
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -22,56 +25,49 @@ async function fetchDominantCoinsFromDb(dominant, coinType) {
 }
 
 async function initializeCoinsCache() {
-  const [
-    binanceDominantPerps,
-    binanceDominantSpot,
-    bybitDominantPerps,
-    bybitDominantSpot,
-  ] = await Promise.all([
+  const [binanceDominantPerps, binanceDominantSpot] = await Promise.all([
     fetchDominantCoinsFromDb("Binance", "perp"),
     fetchDominantCoinsFromDb("Binance", "spot"),
-    fetchDominantCoinsFromDb("Bybit", "perp"),
-    fetchDominantCoinsFromDb("Bybit", "spot"),
   ]);
 
+  // Store compressed
   binanceDominantCache.binancePerp.set(
     "coins",
-    binanceDominantPerps.binanceCoins
+    compressToBase64(binanceDominantPerps.binanceCoins)
   );
   binanceDominantCache.binanceSpot.set(
     "coins",
-    binanceDominantSpot.binanceCoins
+    compressToBase64(binanceDominantSpot.binanceCoins)
   );
-  binanceDominantCache.bybitPerp.set("coins", binanceDominantPerps.bybitCoins);
-  binanceDominantCache.bybitSpot.set("coins", binanceDominantSpot.bybitCoins);
-
-  //BYBIT DOMINANT
-  bybitDominantCache.binancePerp.set("coins", bybitDominantPerps.binanceCoins);
-  bybitDominantCache.binanceSpot.set("coins", bybitDominantSpot.binanceCoins);
-  bybitDominantCache.bybitPerp.set("coins", bybitDominantPerps.bybitCoins);
-  bybitDominantCache.bybitSpot.set("coins", bybitDominantSpot.bybitCoins);
+  binanceDominantCache.bybitPerp.set(
+    "coins",
+    compressToBase64(binanceDominantPerps.bybitCoins)
+  );
+  binanceDominantCache.bybitSpot.set(
+    "coins",
+    compressToBase64(binanceDominantSpot.bybitCoins)
+  );
 }
 
+// Get and decompress
 function getBinanceDominantCache() {
   return {
-    binancePerps: binanceDominantCache.binancePerp.get("coins"),
-    binanceSpot: binanceDominantCache.binanceSpot.get("coins"),
-    bybitPerps: binanceDominantCache.bybitPerp.get("coins"),
-    bybitSpot: binanceDominantCache.bybitSpot.get("coins"),
-  };
-}
-
-function getBybitDominantCache() {
-  return {
-    binancePerps: bybitDominantCache.binancePerp.get("coins"),
-    binanceSpot: bybitDominantCache.binanceSpot.get("coins"),
-    bybitPerps: bybitDominantCache.bybitPerp.get("coins"),
-    bybitSpot: bybitDominantCache.bybitSpot.get("coins"),
+    binancePerps: decompressFromBase64(
+      binanceDominantCache.binancePerp.get("coins")
+    ),
+    binanceSpot: decompressFromBase64(
+      binanceDominantCache.binanceSpot.get("coins")
+    ),
+    bybitPerps: decompressFromBase64(
+      binanceDominantCache.bybitPerp.get("coins")
+    ),
+    bybitSpot: decompressFromBase64(
+      binanceDominantCache.bybitSpot.get("coins")
+    ),
   };
 }
 
 module.exports = {
   initializeCoinsCache,
   getBinanceDominantCache,
-  getBybitDominantCache,
 };
