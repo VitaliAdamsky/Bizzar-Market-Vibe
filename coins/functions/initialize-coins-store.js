@@ -1,4 +1,4 @@
-const { initializeCoinsCache } = require("./coins-service.js");
+const { initializeCoinsCache } = require("@coins/cache/service.js");
 
 async function initializeCoinsStore() {
   await initializeCoinsCache();

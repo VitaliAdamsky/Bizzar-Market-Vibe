@@ -2,7 +2,7 @@
 const express = require("express");
 const {
   refreshCoinsCacheController,
-} = require("../controllers/coins.controller");
+} = require("@coins/controllers/coins.controller");
 
 const router = express.Router();
 router.get("/coins/refresh", refreshCoinsCacheController);

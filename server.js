@@ -3,47 +3,71 @@ require("dotenv").config();
 require("module-alias/register");
 
 const { initializeApp } = require("./app/initialize-app.js");
-const { scheduleSelfPing } = require("./jobs/self-ping.js");
+//const { scheduleSelfPing } = require("./jobs/self-ping.js");
 
 const {
   initializeServantsConfig,
-} = require("./app/initialize-servants-config.js");
-
-const { initializeTelegramBots } = require("./app/initialize-telegram-bots.js");
+} = require("@app/initialize-servants-config.js");
 
 const {
   initializeCoinsStore,
-} = require("./coins/functions/initialize-coins-store.js");
+} = require("@coins/functions/initialize-coins-store.js");
 
 const {
   initializeKlineStore,
-} = require("./kline/functions/initialize-kline-store.js");
+} = require("@kline/functions/initialize-kline-store.js");
+
+const {
+  initializeOpenInterestStore,
+} = require("@oi/functions/initialize-oi-store.js");
+
+const {
+  initializeFundingRateStore,
+} = require("@fr/functions/initialize-fr-store.js");
+
+// const {
+//   initializeOpenInterestStore,
+// } = require("@oi/functions/initialize-oi-store.js");
+
+// const {
+//   initializeFundingRateStore,
+// } = require("@fr/functions/initialize-fr-store.js");
+
+// const { initializeTelegramBots } = require("./app/initialize-telegram-bots.js");
+
+// const {
+//   initializeCoinsStore,
+// } = require("./coins/functions/initialize-coins-store.js");
+
+// const {
+//   initializeKlineStore,
+// } = require("./kline/functions/initialize-kline-store.js");
 
 //const { scheduleAllOiJobs } = require("./jobs/oi.js");
 
 //const { scheduleAllFrJobs } = require("./jobs/fr.js");
 
-const {
-  setInitialColors,
-} = require("./functions/shared/colors/colors-cache.js");
-const { scheduleAllKlineJobs } = require("./kline/jobs/kline.js");
+// const {
+//   setInitialColors,
+// } = require("./functions/shared/colors/colors-cache.js");
+// const { scheduleAllKlineJobs } = require("./kline/jobs/kline.js");
 
 async function main() {
   try {
     await initializeServantsConfig();
 
     await initializeCoinsStore();
+    //await initializeKlineStore();
     //await initializeOpenInterestStore();
-    //await initializeFundingRateStore();
-    await initializeKlineStore();
+    await initializeFundingRateStore();
 
     const app = await initializeApp();
 
-    scheduleSelfPing();
-    setInitialColors();
+    // scheduleSelfPing();
+    // setInitialColors();
     //scheduleAllOiJobs();
     //scheduleAllFrJobs();
-    scheduleAllKlineJobs();
+    //scheduleAllKlineJobs();
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, "0.0.0.0", () => {

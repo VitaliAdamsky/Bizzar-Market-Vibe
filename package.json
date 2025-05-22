@@ -37,11 +37,14 @@
     "pg": "^8.15.6"
   },
   "_moduleAliases": {
+    "@app": "app",
+    "@general": "general",
+    "@global": "global",
     "@functions": "functions",
-    "@shared": "functions/shared",
-    "@kline": "kline",
-    "@oi": "oi",
-    "@fr": "fr",
+    "@shared": "shared",
+    "@kline": "market-data/kline",
+    "@oi": "market-data/oi",
+    "@fr": "market-data/fr",
     "@coins": "coins"
   }
 }

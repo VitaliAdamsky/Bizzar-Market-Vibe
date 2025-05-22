@@ -1,4 +1,6 @@
-const { initializeCoinsCache } = require("../functions/coins-service");
+const {
+  initializeCoinsCache,
+} = require("@coins/functions/initialize-coins-store.js");
 
 async function refreshCoinsCacheController(_req, res, next) {
   try {
