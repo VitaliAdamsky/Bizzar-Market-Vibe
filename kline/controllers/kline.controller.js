@@ -1,25 +1,44 @@
 const {
   validateRequestParams,
-} = require("../../functions/shared/validators/validate-request-params.js");
+} = require("@shared/validators/validate-request-params.js");
 
-const { getCompressedKlineCache } = require("../functions/kline-cache.js");
+const { getKlineCache } = require("@kline/functions/kline-cache.js");
 
 const {
   initializeKlineStore,
-} = require("../functions/initialize-kline-store.js");
+} = require("@kline/functions/initialize-kline-store.js");
+
+const {
+  decompressFromGzipBase64,
+} = require("@shared/utility/compression-utils.js");
 
 async function getKlineDataController(req, res, next) {
   try {
     const { timeframe } = validateRequestParams(req.query);
+    console.log("CONTROLLER timeframe", timeframe);
 
-    const data = getCompressedKlineCache(timeframe);
+    const compressedBuffer = getKlineCache(timeframe);
+    if (!compressedBuffer) {
+      return res.status(404).json({ error: "No data for this timeframe" });
+    }
 
-    // 3) Return coins array as JSON
-    return res.status(200).json(data);
+    let decompressed;
+    try {
+      decompressed = decompressFromGzipBase64(compressedBuffer);
+      console.log("HELL:getKlineCache", timeframe, decompressed.data.length);
+    } catch (err) {
+      console.error("Failed to decompress kline data:", err);
+      return res.status(500).json({ error: "Failed to decompress kline data" });
+    }
+
+    // Set headers for JSON response
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Cache-Control", "max-age=60");
+
+    // Send the decompressed JSON data
+    res.json(decompressed);
   } catch (err) {
-    // 4) On error, reset cache to avoid stale data
     console.error("Error fetching kline data:", err);
-    // Delegate error handling to Express
     return next(err);
   }
 }

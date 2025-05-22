@@ -1,19 +1,31 @@
-// utils/compression-utils.js
-const pako = require("pako");
+// compression-utils.js
+const zlib = require("zlib");
 
-function compressToBase64(obj) {
-  const jsonStr = JSON.stringify(obj);
-  const compressed = pako.deflate(jsonStr);
-  return Buffer.from(compressed).toString("base64");
+/**
+ * Compress a JS object into a gzip Buffer and encode to Base64
+ * @param {Object} data - The data to compress
+ * @returns {string} - The Base64 encoded compressed gzip buffer
+ */
+function compressToGzipBase64(data) {
+  const json = JSON.stringify(data);
+  const compressedBuffer = zlib.gzipSync(Buffer.from(json), {
+    level: zlib.constants.Z_BEST_COMPRESSION,
+  });
+  return compressedBuffer.toString("base64");
 }
 
-function decompressFromBase64(base64Str) {
-  const compressed = Buffer.from(base64Str, "base64");
-  const decompressed = pako.inflate(compressed, { to: "string" });
-  return JSON.parse(decompressed);
+/**
+ * Decode from Base64 and decompress from a gzip Buffer into a JS object
+ * @param {string} base64String - The Base64 encoded compressed gzip buffer
+ * @returns {Object} - The decompressed data
+ */
+function decompressFromGzipBase64(base64String) {
+  const compressedBuffer = Buffer.from(base64String, "base64");
+  const json = zlib.gunzipSync(compressedBuffer).toString();
+  return JSON.parse(json);
 }
 
 module.exports = {
-  compressToBase64,
-  decompressFromBase64,
+  compressToGzipBase64,
+  decompressFromGzipBase64,
 };

@@ -12,6 +12,8 @@ async function initializeKlineStore() {
     runWithOptionalDelay(timeframe, async () => {
       try {
         const payload = await fetchKlineData(timeframe, limit);
+        //TODO
+        console.log("initializeKlineStore", timeframe, payload.data.length);
         setKlineCache(timeframe, payload);
         console.log(`✅ Kline cache ${timeframe} → initialized...`);
       } catch (err) {

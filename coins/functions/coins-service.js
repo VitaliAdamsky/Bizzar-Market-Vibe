@@ -2,9 +2,10 @@
 const { binanceDominantCache } = require("./coins-cache");
 const ServantsConfigOperator = require("../../functions/global/servants/servants-config");
 const {
-  compressToBase64,
-  decompressFromBase64,
-} = require("../../functions/shared/utility/compression-utils"); // Adjust path
+  compressToGzipBase64,
+  decompressFromGzipBase64,
+  com,
+} = require("@shared/utility/compression-utils.js"); // Adjust path
 
 // Fetch coins from DB
 async function fetchDominantCoinsFromDb(dominant, coinType) {
@@ -33,35 +34,35 @@ async function initializeCoinsCache() {
   // Store compressed
   binanceDominantCache.binancePerp.set(
     "coins",
-    compressToBase64(binanceDominantPerps.binanceCoins)
+    compressToGzipBase64(binanceDominantPerps.binanceCoins)
   );
   binanceDominantCache.binanceSpot.set(
     "coins",
-    compressToBase64(binanceDominantSpot.binanceCoins)
+    compressToGzipBase64(binanceDominantSpot.binanceCoins)
   );
   binanceDominantCache.bybitPerp.set(
     "coins",
-    compressToBase64(binanceDominantPerps.bybitCoins)
+    compressToGzipBase64(binanceDominantPerps.bybitCoins)
   );
   binanceDominantCache.bybitSpot.set(
     "coins",
-    compressToBase64(binanceDominantSpot.bybitCoins)
+    compressToGzipBase64(binanceDominantSpot.bybitCoins)
   );
 }
 
 // Get and decompress
 function getBinanceDominantCache() {
   return {
-    binancePerps: decompressFromBase64(
+    binancePerps: decompressFromGzipBase64(
       binanceDominantCache.binancePerp.get("coins")
     ),
-    binanceSpot: decompressFromBase64(
+    binanceSpot: decompressFromGzipBase64(
       binanceDominantCache.binanceSpot.get("coins")
     ),
-    bybitPerps: decompressFromBase64(
+    bybitPerps: decompressFromGzipBase64(
       binanceDominantCache.bybitPerp.get("coins")
     ),
-    bybitSpot: decompressFromBase64(
+    bybitSpot: decompressFromGzipBase64(
       binanceDominantCache.bybitSpot.get("coins")
     ),
   };

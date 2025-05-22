@@ -1,8 +1,9 @@
 const NodeCache = require("node-cache");
 const {
-  compressToBase64,
-  decompressFromBase64,
-} = require("../../functions/shared/utility/compression-utils.js"); // Adjust path if needed
+  compressToGzipBase64,
+  decompressFromGzipBase64,
+} = require("@shared/utility/compression-utils.js");
+const { isJsonSerializable } = require("@shared/utility/is-json-format.js");
 
 const TTL = { "1h": 0, "4h": 0, "12h": 0, D: 0 };
 
@@ -19,30 +20,46 @@ function assertTimeframe(tf) {
     );
 }
 
-// Stores compressed base64 version
+// Store gzip Buffer
 function setKlineCache(tf, data) {
   assertTimeframe(tf);
-  const compressed = compressToBase64(data);
-  klineCaches[tf].set("data", compressed, TTL[tf] || 0);
+  if (!isJsonSerializable(data)) {
+    throw new Error("Data is not JSON serializable");
+  }
+  console.log("setKlineCache", tf, data.data.length);
+  const compressedBuffer = compressToGzipBase64(data);
+  // ✅ Validate decompression integrity
+  try {
+    const test = decompressFromGzipBase64(compressedBuffer);
+    if (JSON.stringify(test) !== JSON.stringify(data)) {
+      throw new Error("Decompressed data mismatch");
+    }
+  } catch (err) {
+    throw new Error("Compressed buffer is invalid or corrupt: " + err.message);
+  }
+
+  klineCaches[tf].set("data", compressedBuffer, TTL[tf] || 0);
+  console.log("Setting cache for:", tf);
+  console.log("Buffer length:", compressedBuffer.length);
 }
 
-// Decompresses and returns parsed data
+// Decompress gzip buffer to JS
 function getKlineCache(tf) {
   assertTimeframe(tf);
-  const compressed = klineCaches[tf].get("data");
-  if (!compressed) return null;
-  return decompressFromBase64(compressed);
-}
-
-// Returns raw base64 compressed string (for network send/log/etc)
-function getCompressedKlineCache(tf) {
-  assertTimeframe(tf);
-  return klineCaches[tf].get("data") ?? null;
+  const buffer = klineCaches[tf].get("data");
+  if (!buffer) return null;
+  try {
+    const decompressed = decompressFromGzipBase64(buffer);
+    console.log("HELL:getKlineCache", tf, decompressed.data.length);
+    return buffer;
+  } catch (err) {
+    console.error("Failed to decompress kline data:", err);
+    return null;
+  }
 }
 
 module.exports = {
   VALID_TIMEFRAMES: VALID,
   setKlineCache,
   getKlineCache,
-  getCompressedKlineCache, // <== newly added
 };
