@@ -79,9 +79,9 @@ class ServantsConfigOperator {
         proxyMarketVibe: secrets.PROXY_MARKET_VIBE || "",
         projectName: "Render-Market-Vibe",
         renderOiServer: secrets.RENDER_OI_SERVER || "",
-        limitKline: secrets.LIMIT_KLINE || 52,
-        limitOi: secrets.LIMIT_OI || 52,
-        limitFr: secrets.LIMIT_FR || 53,
+        limitKline: Number(secrets.LIMIT_KLINE) || 52,
+        limitOi: Number(secrets.LIMIT_OI) || 52,
+        limitFr: Number(secrets.LIMIT_FR) || 53,
         delayInMinutesShort: 5,
         delayInMinutesLong: 10,
       };

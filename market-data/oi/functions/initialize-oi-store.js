@@ -1,38 +1,33 @@
-// initializeOiStore.js
+// initializeOpenInterestStore.js
 const ServantsConfigOperator = require("@global/servants/servants-config.js");
-
 const {
   fetchOpenInterestData,
 } = require("@oi/functions/fetches/fetch-oi-data.js");
-
 const { setOpenInterestCache } = require("@oi/cache/service.js");
-
 const { VALID_TIMEFRAMES } = require("@oi/config/timeframe.config.js");
 
-const { delay } = require("@shared/utils/delay/delay.js");
-
 async function initializeOpenInterestStore() {
-  const limit = ServantsConfigOperator.getConfig().limitOi;
-  //TODO: remove
-  console.log("initializeOpenInterestStore", limit);
+  const limit = ServantsConfigOperator.getConfig().limitOi; // Loop through each timeframe and schedule job with delay
   for (const config of VALID_TIMEFRAMES) {
-    try {
-      // Use a delay function to handle asynchronous delays
-      await delay(config.delay);
-      //
-      // await new Promise((resolve) => setTimeout(resolve, config.delay));
+    const { timeframe, delay: delayMs } = config;
 
-      const data = await fetchOpenInterestData(config.timeframe, limit);
-      setOpenInterestCache(config.timeframe, data);
-      //TODO: remove
-      console.log("initializeOpenInterestStore", data.data.length);
-      console.log(`🟢 OI Store ${config.timeframe} --> initialized...`);
-    } catch (error) {
-      console.error(
-        `❌ Failed to initialize OI Store for ${config.timeframe}:`,
-        error
-      );
-    }
+    console.log(`⏱ OI [${timeframe}] will init after ${delayMs / 60000} min`);
+
+    setTimeout(async () => {
+      try {
+        const data = await fetchOpenInterestData(timeframe, limit);
+        setOpenInterestCache(timeframe, data);
+
+        console.log(
+          `🟢 OI [${timeframe}] Cache initialized | Data size: ${data.data.length}`
+        );
+      } catch (err) {
+        console.error(
+          `❌ OI [${timeframe}] failed to initialize cache:`,
+          err.message || err
+        );
+      }
+    }, delayMs);
   }
 }
 

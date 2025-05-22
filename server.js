@@ -57,9 +57,9 @@ async function main() {
     await initializeServantsConfig();
 
     await initializeCoinsStore();
-    //await initializeKlineStore();
+    await initializeKlineStore();
     //await initializeOpenInterestStore();
-    await initializeFundingRateStore();
+    //await initializeFundingRateStore();
 
     const app = await initializeApp();
 

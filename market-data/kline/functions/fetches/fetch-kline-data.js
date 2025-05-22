@@ -85,11 +85,6 @@ async function fetchKlineData(timeframe, limit) {
     ),
   ]);
 
-  console.log("binanceKlinePerpData", binanceKlinePerpData.length);
-  console.log("bybitKlinePerpData", bybitKlinePerpData.length);
-  console.log("binanceKlineSpotData", binanceKlineSpotData.length);
-  console.log("bybitKlineSpotData", bybitKlineSpotData.length);
-
   //3. Calculate when this data should expire
   const lastOpenTime =
     bybitKlinePerpData[0]?.data?.at(-1)?.openTime ??

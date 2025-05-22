@@ -13,9 +13,6 @@ async function getOpenInterestDataController(req, res, next) {
     const { timeframe } = validateRequestParams(req.query);
 
     const data = getOpenInterestCache(timeframe);
-    //TODO: remove
-    console.log("OI CACHE", data);
-
     // 3) Return coins array as JSON
     return res.status(200).json(data);
   } catch (err) {

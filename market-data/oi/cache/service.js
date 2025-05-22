@@ -12,8 +12,7 @@ const {
 
 function setOpenInterestCache(tf, data) {
   assertTimeframe(tf);
-  //TODO: remove
-  //console.log("SET OI CACHE", data.data.length);
+
   if (typeof data !== "object") {
     throw new Error("OI Cache: Data must be a JSON-serializable object.");
   }
@@ -27,8 +26,6 @@ function getOpenInterestCache(tf) {
   const buffer = oiCaches[tf].get("data");
   if (!buffer) return null;
   const decompressed = decompressFromGzipBase64(buffer);
-  //TODO: remove
-  console.log("GET DECOMPRESSED OI CACHE", decompressed.data.length);
   return decompressed;
 }
 

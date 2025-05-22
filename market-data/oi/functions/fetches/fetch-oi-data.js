@@ -29,9 +29,6 @@ async function fetchOpenInterestData(timeframe, limit) {
 
   const binancePerpCoins = coins.binancePerps;
   const bybitPerpCoins = coins.bybitPerps;
-  //TODO: remove
-  console.log("BiCoins", binancePerpCoins.length);
-  console.log("ByCoins", bybitPerpCoins.length);
 
   // 2. Concurrently fetch OI data from both exchanges
   const [binanceOiData, bybitOiData] = await Promise.all([
