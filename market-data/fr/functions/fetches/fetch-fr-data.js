@@ -13,6 +13,10 @@ const {
   fixFundingRateChange,
 } = require("@fr/functions/processing/fix-fr-change.js");
 
+const {
+  getNearestExpirationTime,
+} = require("@shared/utils/get-nearest-expiration-time.js");
+
 async function fetchFundingRateData(limit) {
   const { binancePerps, bybitPerps } = getBinanceDominantCache();
   const binancePerpCoins = binancePerps;
@@ -24,16 +28,7 @@ async function fetchFundingRateData(limit) {
     fetchBybitFr(bybitPerpCoins, limit),
   ]);
 
-  // 3. Calculate when this data should expire
-  const lastOpenTime =
-    bybitFrData[0]?.data?.at(-1)?.openTime ??
-    bybitFrData[0]?.data?.at(-1)?.openTime;
-
-  const lastCloseTime =
-    bybitFrData[0]?.data?.at(-1)?.closeTime ??
-    bybitFrData[0]?.data?.at(-1)?.closeTime;
-
-  const expirationTime = lastCloseTime + (lastCloseTime - lastOpenTime) + 1;
+  const expirationTime = getNearestExpirationTime();
 
   let data = fixFundingRateChange([...binanceFrData, ...bybitFrData]);
 
