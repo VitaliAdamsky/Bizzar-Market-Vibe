@@ -2,10 +2,11 @@
 const express = require("express");
 const cors = require("cors");
 
-const coinsRouter = require("@coins/routes/coins.router.js");
-const oiRouter = require("@oi/routes/oi.router.js");
-const klineRouter = require("@kline/routes/kline.router.js");
-const frRouter = require("@fr/routes/fr.router.js");
+const coinsRouter = require("@coins/routes/coins.route.js");
+const oiRouter = require("@oi/routes/oi.route.js");
+const klineRouter = require("@kline/routes/kline.route.js");
+const frRouter = require("@fr/routes/fr.route.js");
+const reportRouter = require("@general/report/routes/report.route.js");
 //const generalRouter = require("../routers/general.router.js");
 //const colorsRouter = require("../routers/colors.router.js");
 
@@ -28,6 +29,7 @@ async function initializeApp() {
   app.use("/api", frRouter);
   app.use("/api", oiRouter);
   app.use("/api", klineRouter);
+  app.use("/api", reportRouter);
 
   return app;
 }
