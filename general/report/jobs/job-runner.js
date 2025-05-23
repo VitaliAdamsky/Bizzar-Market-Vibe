@@ -9,7 +9,7 @@ async function fetchSelfPongData() {
     //TODO
     console.log("URL", url);
     if (url) {
-      const response = await fetch(`${url}/report`);
+      const response = await fetch(`${url}/api/report`);
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.status}`);
       }
