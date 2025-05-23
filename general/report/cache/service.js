@@ -4,7 +4,7 @@ function getUrlCacheData() {
   if (!urlCache.get("url")) {
     throw new Error("UrlCache is empty");
   }
-  return urlCache.get("config");
+  return urlCache.get("url");
 }
 
 function setUrlCacheData(data) {
