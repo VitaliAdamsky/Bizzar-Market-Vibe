@@ -5,9 +5,7 @@ require("module-alias/register");
 const { initializeApp } = require("./app/initialize-app.js");
 //const { scheduleSelfPing } = require("./jobs/self-ping.js");
 
-const {
-  initializeServantsConfig,
-} = require("@app/initialize-servants-config.js");
+const { initializeConfig } = require("@app/initialize-config.js");
 
 const {
   initializeCoinsStore,
@@ -24,6 +22,12 @@ const {
 const {
   initializeFundingRateStore,
 } = require("@fr/functions/initialize-fr-store.js");
+
+const { scheduleKlineJobs } = require("@kline/jobs/job-runner");
+const { scheduleOpenInterestJobs } = require("@oi/jobs/job-runner");
+const { scheduleFundingRateJobs } = require("@fr/jobs/job-runner");
+
+const { scheduleSelfPing } = require("@general/report/jobs/job-runner.js");
 
 // const {
 //   initializeOpenInterestStore,
@@ -54,27 +58,27 @@ const {
 
 async function main() {
   try {
-    await initializeServantsConfig();
+    await initializeConfig();
 
     await initializeCoinsStore();
-    await initializeKlineStore();
+    //await initializeKlineStore();
     //await initializeOpenInterestStore();
     //await initializeFundingRateStore();
 
     const app = await initializeApp();
 
-    // scheduleSelfPing();
-    // setInitialColors();
-    //scheduleAllOiJobs();
-    //scheduleAllFrJobs();
-    //scheduleAllKlineJobs();
+    //scheduleKlineJobs();
+    //scheduleOpenInterestJobs();
+    //scheduleFundingRateJobs();
+
+    scheduleSelfPing();
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`💜 Server started on port ${PORT}`);
     });
   } catch (error) {
-    console.error("Application initialization failed:", error);
+    console.error("🆘 Application initialization failed:", error);
     process.exit(1);
   }
 }

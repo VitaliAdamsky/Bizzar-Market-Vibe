@@ -1,5 +1,8 @@
 // initializeOpenInterestStore.js
-const ServantsConfigOperator = require("@global/servants/servants-config.js");
+const {
+  getServantConfig,
+} = require("@global/servants/servant-config/service.js");
+
 const {
   fetchOpenInterestData,
 } = require("@oi/functions/fetches/fetch-oi-data.js");
@@ -7,11 +10,13 @@ const { setOpenInterestCache } = require("@oi/cache/service.js");
 const { VALID_TIMEFRAMES } = require("@oi/config/timeframe.config.js");
 
 async function initializeOpenInterestStore() {
-  const limit = ServantsConfigOperator.getConfig().limitOi; // Loop through each timeframe and schedule job with delay
+  const limit = getServantConfig().limitOi;
   for (const config of VALID_TIMEFRAMES) {
     const { timeframe, delay: delayMs } = config;
 
-    console.log(`⏱ OI [${timeframe}] will init after ${delayMs / 60000} min`);
+    console.log(
+      `⏱ OI Store [${timeframe}] will init after ${delayMs / 60000} min`
+    );
 
     setTimeout(async () => {
       try {

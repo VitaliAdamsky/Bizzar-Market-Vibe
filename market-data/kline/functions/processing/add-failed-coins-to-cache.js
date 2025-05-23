@@ -1,7 +1,9 @@
-const ServantsConfigOperator = require("@global/servants/servants-config.js");
+const {
+  getServantConfig,
+} = require("@global/servants/servant-config/service.js");
 
 async function addFailedCoinsToCache(exchange, coinType, failedCoins) {
-  const config = ServantsConfigOperator.getConfig();
+  const config = getServantConfig();
 
   // Build query string with all three params
   const query = new URLSearchParams({

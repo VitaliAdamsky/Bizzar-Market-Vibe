@@ -1,52 +1,67 @@
-// job-runner.ts
 const { CronJob } = require("cron");
 
 const {
-  ServantsConfigOperator,
-} = require("@global/servants/servants-config.js");
+  getServantConfig,
+} = require("@global/servants/servant-config/service.js");
 
-const { TIMEFRAME_CONFIG } = require("@kline/config/timeframe-config.js");
+const { TIMEFRAME_CONFIG } = require("@oi/config/timeframe.config.js");
 
-const { fetchOiData } = require("@oi/functions/fetches/fetch-oi-data.js");
+const {
+  fetchOpenInterestData,
+} = require("@oi/functions/fetches/fetch-oi-data.js");
 
 const { setOpenInterestCache } = require("@oi/cache/service.js");
 
-const { UnixToNamedTimeRu } = require("@shared/time-converter.js");
+const { UnixToNamedTimeRu } = require("@shared/utils/time-converter.js");
 
-async function runOiFetch(timeframe) {
-  const limit = ServantsConfigOperator.getConfig().limitOi;
+async function runOpenInterestFetch(timeframe) {
+  const limit = getServantConfig().limitKline;
   try {
-    const data = await fetchOiData(timeframe, limit);
+    const data = await fetchOpenInterestData(timeframe, limit);
     setOpenInterestCache(timeframe, data);
     console.log(
-      `✅ [${UnixToNamedTimeRu(Date.now())}] Updated OI Cache for ${timeframe}`
+      `💟 [${UnixToNamedTimeRu(
+        Date.now()
+      )}] OI Cache ${timeframe} ---> updated...`
     );
   } catch (error) {
     console.error(
       `❌ [${UnixToNamedTimeRu(
         Date.now()
-      )}] Failed to update Kline cache for ${timeframe}`,
+      )}] Failed to update OI Cache for ${timeframe}`,
       error instanceof Error ? error.message : error
     );
   }
 }
 
-export function scheduleOiJobs() {
+function scheduleOpenInterestJobs() {
   Object.keys(TIMEFRAME_CONFIG).forEach((tf) => {
     const { cron, delay } = TIMEFRAME_CONFIG[tf];
-    schedule.scheduleJob(cron, () => {
-      console.log(
-        `👉 [JOB] Scheduled OI ${tf} job (cron: ${cron}, delay: ${delay} min)`
-      );
 
-      setTimeout(() => {
-        console.log(`👉 [JOB] Running OI ${tf} job after ${delay} min`);
-        runOiFetch(tf);
-      }, delay * 60 * 1000); // Convert minutes → ms
-    });
+    // Create a new CronJob
+    const job = new CronJob(
+      cron,
+      () => {
+        console.log(
+          `🤙 [OI JOB] Scheduled ${tf} job (cron: ${cron}, delay: ${delay} min)`
+        );
+
+        setTimeout(() => {
+          console.log(`🛠 [OI JOB] Running ${tf} job after ${delay} min`);
+          runOpenInterestFetch(tf);
+        }, 3 * 1000); // Convert minutes to milliseconds
+      },
+      null, // onComplete callback
+      true, // Start the job right now
+      "UTC" // Time zone
+    );
+
+    console.log(`☝️ [OI JOB] for ${tf} is set up with cron: ${cron}`);
+
+    job.start(); // Start the job
   });
 }
 
 module.exports = {
-  scheduleOiJobs,
+  scheduleOpenInterestJobs,
 };

@@ -4,25 +4,25 @@ const {
   getServantConfig,
 } = require("@global/servants/servant-config/service.js");
 
-const { TIMEFRAME_CONFIG } = require("@kline/config/timeframe.config.js");
+const { TIMEFRAME_CONFIG } = require("@fr/config/timeframe.config.js");
 
 const {
-  fetchKlineData,
-} = require("@kline/functions/fetches/fetch-kline-data.js");
+  fetchFundingRateData,
+} = require("@fr/functions/fetches/fetch-fr-data.js");
 
-const { setKlineCache } = require("@kline/cache/service.js");
+const { setFundingRateCache } = require("@fr/cache/service.js");
 
 const { UnixToNamedTimeRu } = require("@shared/utils/time-converter.js");
 
-async function runKlineFetch(timeframe) {
+async function runFundingRateFetch(timeframe) {
   const limit = getServantConfig().limitKline;
   try {
-    const data = await fetchKlineData(timeframe, limit);
-    setKlineCache(timeframe, data);
+    const data = await fetchFundingRateData(limit);
+    setFundingRateCache(timeframe, data);
     console.log(
-      `😍 [${UnixToNamedTimeRu(
+      `🤍 [${UnixToNamedTimeRu(
         Date.now()
-      )}] Kline Cache ${timeframe} --> updated...`
+      )}] FR Cache ${timeframe} --> updated...`
     );
   } catch (error) {
     console.error(
@@ -34,7 +34,7 @@ async function runKlineFetch(timeframe) {
   }
 }
 
-function scheduleKlineJobs() {
+function scheduleFundingRateJobs() {
   Object.keys(TIMEFRAME_CONFIG).forEach((tf) => {
     const { cron, delay } = TIMEFRAME_CONFIG[tf];
 
@@ -43,12 +43,12 @@ function scheduleKlineJobs() {
       cron,
       () => {
         console.log(
-          `👉 [KLINE JOB] Scheduled ${tf} job (cron: ${cron}, delay: ${delay} min)`
+          `👉 [FR JOB] Scheduled ${tf} job (cron: ${cron}, delay: ${delay} min)`
         );
 
         setTimeout(() => {
           console.log(`🛠 [KLINE JOB] Running ${tf} job after ${delay} min`);
-          runKlineFetch(tf);
+          runFundingRateFetch(tf);
         }, 3 * 1000); // Convert minutes to milliseconds
       },
       null, // onComplete callback
@@ -63,5 +63,5 @@ function scheduleKlineJobs() {
 }
 
 module.exports = {
-  scheduleKlineJobs,
+  scheduleFundingRateJobs,
 };

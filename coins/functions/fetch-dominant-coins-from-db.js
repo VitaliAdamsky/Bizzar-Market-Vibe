@@ -1,7 +1,9 @@
-const ServantsConfigOperator = require("@global/servants/servants-config");
+const {
+  getServantConfig,
+} = require("@global/servants/servant-config/service.js");
 
 async function fetchDominantCoinsFromDb(dominant, coinType) {
-  const config = ServantsConfigOperator.getConfig();
+  const config = getServantConfig();
   if (!config?.coinsApi) {
     throw new Error("Missing COINS API configuration");
   }

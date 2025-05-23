@@ -92,8 +92,6 @@ async function fetchKlineData(timeframe, limit) {
 
   const expirationTime = calculateExpirationTime(lastOpenTime, timeframe);
 
-  console.log("expirationTime", expirationTime);
-
   let data = mergeSpotWithPerps(
     [...binanceKlinePerpData, ...bybitKlinePerpData],
     [...binanceKlineSpotData, ...bybitKlineSpotData]

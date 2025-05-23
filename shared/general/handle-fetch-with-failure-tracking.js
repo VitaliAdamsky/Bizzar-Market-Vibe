@@ -1,3 +1,5 @@
+const { UnixToNamedTimeRu } = require("@shared/utils/time-converter.js");
+
 async function handleFetchWithFailureTracking(
   fetchFn,
   coins,
@@ -14,7 +16,12 @@ async function handleFetchWithFailureTracking(
 
   for (const result of results) {
     if (!result.data || result.data.length === 0) {
-      failedSymbols.push(result.symbol);
+      const errorDetails = {
+        symbol: result.symbol,
+        time: UnixToNamedTimeRu(Date.now()),
+        error: result.error || "No data returned",
+      };
+      failedSymbols.push(errorDetails);
     } else {
       succeeded.push(result);
     }
