@@ -1,7 +1,7 @@
 const {
   getColorsCache,
   setColorsCache,
-} = require("../functions/shared/colors/colors-cache.js");
+} = require("@general/colors/cache/value.js");
 
 // GET /api/colors → Returns current colors
 async function getColorsController(_req, res) {

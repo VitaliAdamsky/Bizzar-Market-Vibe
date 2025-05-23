@@ -3,7 +3,7 @@ const express = require("express");
 const {
   getColorsController,
   setColorsController,
-} = require("../controllers/colors.controller");
+} = require("@general/colors/controllers/colors.controller");
 
 const router = express.Router();
 router.get("/colors", getColorsController);
