@@ -20,6 +20,7 @@ async function initializeServantsConfig() {
       tgBusiness: secrets.TG_BUSINESS || "",
       allowedOrigins: JSON.parse(secrets.ALLOWED_ORIGINS),
       coinsApi: secrets.COINS || "",
+      utilsApi: secrets.UTILS || "",
       coinsStoreApi: secrets.COINS_STORE || "",
       mongoDb: secrets.MONGO_DB || "",
       proxyMarketVibe: secrets.PROXY_MARKET_VIBE || "",
@@ -30,6 +31,7 @@ async function initializeServantsConfig() {
       limitFr: Number(secrets.LIMIT_FR) || 53,
       delayInMinutesShort: 5,
       delayInMinutesLong: 10,
+      projectName: "Render-Market-Vibe",
     };
 
     servantConfigCache.set("config", config);

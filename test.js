@@ -1,8 +1,27 @@
-const fs = require("fs");
-const zlib = require("zlib");
+const {
+  initializeFundingRateStore,
+} = require("@fr/functions/initialize-fr-store.js");
 
-const compressed = fs.readFileSync("kline(3)");
-const json = zlib.gunzipSync(compressed).toString();
-const data = JSON.parse(json);
+const { getFundingRateCache } = require("@fr/cache/service.js");
 
-console.log("✅ Parsed:", data);
+const {
+  getServantConfig,
+  initializeServantsConfig,
+} = require("@global/servants/servant-config/service.js");
+
+async function main() {
+  try {
+    await initializeServantsConfig();
+    await initializeFundingRateStore();
+    const data = getFundingRateCache("1h");
+    data.forEach((d) => {
+      console.log(d.symbol, d.data[0]);
+    });
+    const config = getServantConfig();
+    console.log("Config:", config);
+  } catch (error) {
+    console.error("Failed to initialize configuration:", error);
+  }
+}
+
+main();

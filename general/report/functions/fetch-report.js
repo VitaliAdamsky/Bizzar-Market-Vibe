@@ -2,7 +2,7 @@ function fetchReport() {
   const symbol = "10000BABYDOGEUSDT";
   const klineData = [];
 
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 1; i++) {
     // Generate random prices between 0.001 and 0.002
     const openPrice = Math.random() * (0.002 - 0.001) + 0.001;
     const closePrice = Math.random() * (0.002 - 0.001) + 0.001;

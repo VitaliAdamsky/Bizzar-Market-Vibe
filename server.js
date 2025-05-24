@@ -3,7 +3,8 @@ require("dotenv").config();
 require("module-alias/register");
 
 const { initializeApp } = require("./app/initialize-app.js");
-//const { scheduleSelfPing } = require("./jobs/self-ping.js");
+
+const { initializeColorsCache } = require("@general/colors/cache/service.js");
 
 const { initializeConfig } = require("@app/initialize-config.js");
 
@@ -59,11 +60,11 @@ const { scheduleSelfPing } = require("@general/report/jobs/job-runner.js");
 async function main() {
   try {
     await initializeConfig();
-
+    await initializeColorsCache();
     await initializeCoinsStore();
     //await initializeKlineStore();
-    await initializeOpenInterestStore();
-    //await initializeFundingRateStore();
+    //await initializeOpenInterestStore();
+    await initializeFundingRateStore();
 
     const app = await initializeApp();
 
@@ -71,7 +72,7 @@ async function main() {
     scheduleOpenInterestJobs();
     //scheduleFundingRateJobs();
 
-    scheduleSelfPing();
+    //scheduleSelfPing();
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, "0.0.0.0", () => {

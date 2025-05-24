@@ -17,6 +17,8 @@ const {
   getNearestExpirationTime,
 } = require("@shared/utils/get-nearest-expiration-time.js");
 
+const { stats } = require("@fr/functions/processing/stats.js");
+
 async function fetchFundingRateData(limit) {
   const { binancePerps, bybitPerps } = getBinanceDominantCache();
   const binancePerpCoins = binancePerps;

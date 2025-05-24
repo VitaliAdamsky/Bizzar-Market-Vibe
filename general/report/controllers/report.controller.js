@@ -6,6 +6,11 @@ const {
 
 const { setUrlCacheData } = require("@general/report/cache/service.js");
 
+const {
+  scheduleSelfPing,
+  stopSelfPing,
+} = require("@general/report/jobs/job-runner.js");
+
 function getReportController(_req, res, next) {
   try {
     // Use await if fetchReport is an asynchronous function
@@ -23,10 +28,11 @@ function getReportController(_req, res, next) {
   }
 }
 
-function getFullUrlController(req, res, next) {
+function startSelfPingingController(req, res, next) {
   try {
     const data = getFullUrlFromRequest(req);
     setUrlCacheData(data);
+    scheduleSelfPing();
     // Send the JSON data
     res.json({ url: data });
   } catch (err) {
@@ -35,7 +41,18 @@ function getFullUrlController(req, res, next) {
   }
 }
 
+function stopSelfPingingController(_req, res, next) {
+  try {
+    stopSelfPing();
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error fetching report data:", err);
+    return next(err);
+  }
+}
+
 module.exports = {
   getReportController,
-  getFullUrlController,
+  startSelfPingingController,
+  stopSelfPingingController,
 };

@@ -48,7 +48,7 @@ async function fetchOpenInterestData(timeframe, limit) {
     ...bybitOiData,
   ]);
 
-  return { expirationTime, data: normalized };
+  return { expirationTime, timeframe, data: normalized };
 }
 
 module.exports = { fetchOpenInterestData };

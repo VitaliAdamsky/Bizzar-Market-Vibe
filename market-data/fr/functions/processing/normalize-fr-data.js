@@ -1,145 +1,81 @@
-// const {
-//   getColorFromChangeValue,
-// } = require("@shared/colors/get-color-from-change-value.js");
+const { getColorsCache } = require("@general/colors/cache/service.js");
+const {
+  getColorFromValue,
+} = require("@general/colors/functions/get-color-from-value.js");
 
-// const { getColorFromValue } = require("@shared/colors/get-color-from-value.js");
+const {
+  getColorFromChangeValue,
+} = require("@general/colors/functions/get-color-from-change-value.js");
+
+const { getPercentile } = require("@shared/normalization/get-percentile.js");
+
+const PERCNETILE = 99;
 
 function normalizeFundingRateData(marketDataArray) {
-  // return marketDataArray.map((coinData) => {
-  //   const data = coinData.data;
+  const colors = getColorsCache();
 
-  //   const closePrices = data.map((item) => item.closePrice ?? 0);
-  //   const closePriceChanges = data.map((item) => item.closePriceChange ?? 0);
-  //   const buyerRatios = data.map((item) => item.buyerRatio ?? 0);
-  //   const buyerRatioChanges = data.map((item) => item.buyerRatioChange ?? 0);
-  //   const quoteVolumes = data.map((item) => item.quoteVolume ?? 0);
-  //   const quoteVolumeChanges = data.map((item) => item.quoteVolumeChange ?? 0);
-  //   const spotPrices = data.map((item) => item.spotClosePrice ?? 0);
-  //   const perpSpotDiffs = data.map((item) => item.perpSpotDiff ?? 0);
-  //   const volumeDeltas = data.map((item) => item.volumeDelta ?? 0);
-  //   const volumeDeltaChanges = data.map((item) => item.volumeDeltaChange ?? 0);
+  return marketDataArray.map((coinData) => {
+    const data = coinData.data;
 
-  //   const cpMin = Math.min(...closePrices);
-  //   const cpMax = Math.max(...closePrices);
-  //   const cpRange = cpMax - cpMin;
-  //   const cpUniform = cpRange === 0;
+    // Extract funding rates and changes
+    const fundingRates = data.map((item) => item.fundingRate ?? 0);
+    const fundingRateChanges = data.map((item) => item.fundingRateChange ?? 0);
 
-  //   const cpChangeMin = Math.min(...closePriceChanges);
-  //   const cpChangeMax = Math.max(...closePriceChanges);
+    // Robust scale for funding rate using 99th percentile of absolute values
+    const absFundingRates = fundingRates.map(Math.abs);
+    const clipValueFr = getPercentile(absFundingRates, PERCNETILE); // Adjust as needed
+    const scaleFr = clipValueFr === 0 ? 1 : clipValueFr;
 
-  //   const brMin = Math.min(...buyerRatios);
-  //   const brMax = Math.max(...buyerRatios);
-  //   const brRange = brMax - brMin;
-  //   const brUniform = brRange === 0;
+    // Robust scale for funding rate change
+    const absFundingRateChanges = fundingRateChanges.map(Math.abs);
+    const clipValueFrChange = getPercentile(absFundingRateChanges, PERCNETILE);
+    const scaleFrChange = clipValueFrChange === 0 ? 1 : clipValueFrChange;
 
-  //   const brChangeMin = Math.min(...buyerRatioChanges);
-  //   const brChangeMax = Math.max(...buyerRatioChanges);
+    // Map each item
+    const updatedData = data.map((item) => {
+      const fundingRate = item.fundingRate ?? 0;
+      const fundingRateChange = item.fundingRateChange ?? 0;
 
-  //   const qvMin = Math.min(...quoteVolumes);
-  //   const qvMax = Math.max(...quoteVolumes);
-  //   const qvRange = qvMax - qvMin;
-  //   const qvUniform = qvRange === 0;
+      // Normalize funding rate using tanh with robust scaling
+      const scaledFr = fundingRate / scaleFr;
+      const tanhFr = Math.tanh(scaledFr);
+      const normalizedFr = (tanhFr + 1) / 2; // Map to [0, 1]
 
-  //   const qvChangeMin = Math.min(...quoteVolumeChanges);
-  //   const qvChangeMax = Math.max(...quoteVolumeChanges);
+      // Normalize funding rate change using tanh with robust scaling
+      const scaledFrChange = fundingRateChange / scaleFrChange;
+      const tanhFrChange = Math.tanh(scaledFrChange); // Map to [-1, 1]
 
-  //   const spMin = Math.min(...spotPrices);
-  //   const spMax = Math.max(...spotPrices);
-  //   const spRange = spMax - spMin;
-  //   const spUniform = spRange === 0;
+      const frColor = getColorFromValue(
+        fundingRate,
+        colors.fundingRateMin,
+        colors.fundingRateMax
+      );
 
-  //   const psMin = Math.min(...perpSpotDiffs);
-  //   const psMax = Math.max(...perpSpotDiffs);
+      const frChangeColor = getColorFromChangeValue(
+        tanhFrChange,
+        -1,
+        1,
+        colors.fundingRateChangeMin,
+        colors.fundingRateChangeMax
+      );
 
-  //   const vdMin = Math.min(...volumeDeltas);
-  //   const vdMax = Math.max(...volumeDeltas);
-  //   const vdRange = vdMax - vdMin;
-  //   const vdUniform = vdRange === 0;
+      return {
+        ...item,
+        normalizedFundingRate: Number(normalizedFr.toFixed(2)),
+        normalizedFundingRateChange: Number(tanhFrChange.toFixed(2)),
+        colors: {
+          ...(item.colors || {}),
+          fundingRate: frColor,
+          fundingRateChange: frChangeColor,
+        },
+      };
+    });
 
-  //   const vdChangeMin = Math.min(...volumeDeltaChanges);
-  //   const vdChangeMax = Math.max(...volumeDeltaChanges);
-
-  //   const updatedData = data.map((item) => {
-  //     const closePrice = item.closePrice ?? 0;
-  //     const normalizedCp = cpUniform ? 1 : (closePrice - cpMin) / cpRange;
-  //     const cpColor = getColorFromValue(normalizedCp);
-
-  //     const closePriceChange = item.closePriceChange ?? 0;
-  //     const cpChangeColor = getColorFromChangeValue(
-  //       closePriceChange,
-  //       cpChangeMin,
-  //       cpChangeMax
-  //     );
-
-  //     const buyerRatio = item.buyerRatio ?? 0;
-  //     const normalizedBr = brUniform ? 1 : (buyerRatio - brMin) / brRange;
-  //     const brColor = getColorFromValue(normalizedBr);
-
-  //     const buyerRatioChange = item.buyerRatioChange ?? 0;
-  //     const brChangeColor = getColorFromChangeValue(
-  //       buyerRatioChange,
-  //       brChangeMin,
-  //       brChangeMax
-  //     );
-
-  //     const quoteVolume = item.quoteVolume ?? 0;
-  //     const normalizedQv = qvUniform ? 1 : (quoteVolume - qvMin) / qvRange;
-  //     const qvColor = getColorFromValue(normalizedQv);
-
-  //     const quoteVolumeChange = item.quoteVolumeChange ?? 0;
-  //     const qvChangeColor = getColorFromChangeValue(
-  //       quoteVolumeChange,
-  //       qvChangeMin,
-  //       qvChangeMax
-  //     );
-
-  //     const spotPrice = item.spotClosePrice ?? 0;
-  //     const normalizedSp = spUniform ? 1 : (spotPrice - spMin) / spRange;
-  //     const spColor = getColorFromValue(normalizedSp);
-
-  //     const perpSpotDiff = item.perpSpotDiff ?? 0;
-  //     const psColor = getColorFromChangeValue(perpSpotDiff, psMin, psMax);
-
-  //     const volumeDelta = item.volumeDelta ?? 0;
-  //     const normalizedVd = vdUniform ? 1 : (volumeDelta - vdMin) / vdRange;
-  //     const vdColor = getColorFromValue(normalizedVd);
-
-  //     const volumeDeltaChange = item.volumeDeltaChange ?? 0;
-  //     const vdChangeColor = getColorFromChangeValue(
-  //       volumeDeltaChange,
-  //       vdChangeMin,
-  //       vdChangeMax
-  //     );
-
-  //     return {
-  //       ...item,
-  //       normalizedClosePrice: parseFloat(normalizedCp.toFixed(2)),
-  //       normalizedBuyerRatio: parseFloat(normalizedBr.toFixed(2)),
-  //       normalizedQuoteVolume: parseFloat(normalizedQv.toFixed(2)),
-  //       normalizedSpotClosePrice: parseFloat(normalizedSp.toFixed(2)),
-  //       normalizedVolumeDelta: parseFloat(normalizedVd.toFixed(2)),
-  //       colors: {
-  //         ...(item.colors || {}),
-  //         closePrice: cpColor,
-  //         closePriceChange: cpChangeColor,
-  //         buyerRatio: brColor,
-  //         buyerRatioChange: brChangeColor,
-  //         quoteVolume: qvColor,
-  //         quoteVolumeChange: qvChangeColor,
-  //         spotClosePrice: spColor,
-  //         perpSpotDiff: psColor,
-  //         volumeDelta: vdColor,
-  //         volumeDeltaChange: vdChangeColor,
-  //       },
-  //     };
-  //   });
-
-  //   return {
-  //     ...coinData,
-  //     data: updatedData,
-  //   };
-  // });
-  return marketDataArray;
+    return {
+      ...coinData,
+      data: updatedData,
+    };
+  });
 }
 
 module.exports = { normalizeFundingRateData };
