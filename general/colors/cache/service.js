@@ -1,7 +1,9 @@
 // oiCache.js
 const { colorsCache } = require("@general/colors/cache/store.js");
 
-const { fetchColors } = require("@general/colors/functions/fetch-colors.js");
+const {
+  fetchColors,
+} = require("@general/colors/functions/http/fetch-colors.js");
 
 async function initializeColorsCache() {
   try {

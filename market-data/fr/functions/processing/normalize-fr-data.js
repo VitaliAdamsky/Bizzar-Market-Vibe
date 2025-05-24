@@ -1,11 +1,12 @@
 const { getColorsCache } = require("@general/colors/cache/service.js");
+
 const {
-  getColorFromValue,
-} = require("@general/colors/functions/get-color-from-value.js");
+  getGradientColorForNegativeRange,
+} = require("@general/colors/functions/normalization/get-gradient-color-for-negative-range.js");
 
 const {
   getColorFromChangeValue,
-} = require("@general/colors/functions/get-color-from-change-value.js");
+} = require("@general/colors/functions/normalization/get-color-from-change-value.js");
 
 const { getPercentile } = require("@shared/normalization/get-percentile.js");
 
@@ -45,7 +46,7 @@ function normalizeFundingRateData(marketDataArray) {
       const scaledFrChange = fundingRateChange / scaleFrChange;
       const tanhFrChange = Math.tanh(scaledFrChange); // Map to [-1, 1]
 
-      const frColor = getColorFromValue(
+      const frColor = getGradientColorForNegativeRange(
         fundingRate,
         colors.fundingRateMin,
         colors.fundingRateMax

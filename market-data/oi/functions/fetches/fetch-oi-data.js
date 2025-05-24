@@ -43,12 +43,15 @@ async function fetchOpenInterestData(timeframe, limit) {
   const expirationTime = calculateExpirationTime(lastOpenTime, timeframe);
 
   // 4. Normalize and merge
-  const normalized = normalizeOpenInterestData([
-    ...binanceOiData,
-    ...bybitOiData,
-  ]);
+  let data = normalizeOpenInterestData([...binanceOiData, ...bybitOiData]);
 
-  return { expirationTime, timeframe, data: normalized };
+  data = data.filter((coinData) => coinData.data.length > 0);
+  const emptyCoins = data
+    .filter((coinData) => coinData.data.length === 0)
+    .map((coinData) => coinData.symbol);
+  console.log("Empty coins:", emptyCoins);
+
+  return { expirationTime, timeframe, data };
 }
 
 module.exports = { fetchOpenInterestData };

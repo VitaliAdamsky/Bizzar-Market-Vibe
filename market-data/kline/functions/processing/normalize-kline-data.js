@@ -2,7 +2,7 @@
 //   getColorFromChangeValue,
 // } = require("@shared/colors/get-color-from-change-value.js");
 
-// const { getColorFromValue } = require("@shared/colors/get-color-from-value.js");
+// const { getColorFromValueFromMinusOneToPlusOne } = require("@shared/colors/get-color-from-value.js");
 
 function normalizeKlineData(marketDataArray) {
   // return marketDataArray.map((coinData) => {
@@ -62,7 +62,7 @@ function normalizeKlineData(marketDataArray) {
   //   const updatedData = data.map((item) => {
   //     const closePrice = item.closePrice ?? 0;
   //     const normalizedCp = cpUniform ? 1 : (closePrice - cpMin) / cpRange;
-  //     const cpColor = getColorFromValue(normalizedCp);
+  //     const cpColor = getColorFromValueFromMinusOneToPlusOne(normalizedCp);
 
   //     const closePriceChange = item.closePriceChange ?? 0;
   //     const cpChangeColor = getColorFromChangeValue(
@@ -73,7 +73,7 @@ function normalizeKlineData(marketDataArray) {
 
   //     const buyerRatio = item.buyerRatio ?? 0;
   //     const normalizedBr = brUniform ? 1 : (buyerRatio - brMin) / brRange;
-  //     const brColor = getColorFromValue(normalizedBr);
+  //     const brColor = getColorFromValueFromMinusOneToPlusOne(normalizedBr);
 
   //     const buyerRatioChange = item.buyerRatioChange ?? 0;
   //     const brChangeColor = getColorFromChangeValue(
@@ -84,7 +84,7 @@ function normalizeKlineData(marketDataArray) {
 
   //     const quoteVolume = item.quoteVolume ?? 0;
   //     const normalizedQv = qvUniform ? 1 : (quoteVolume - qvMin) / qvRange;
-  //     const qvColor = getColorFromValue(normalizedQv);
+  //     const qvColor = getColorFromValueFromMinusOneToPlusOne(normalizedQv);
 
   //     const quoteVolumeChange = item.quoteVolumeChange ?? 0;
   //     const qvChangeColor = getColorFromChangeValue(
@@ -95,14 +95,14 @@ function normalizeKlineData(marketDataArray) {
 
   //     const spotPrice = item.spotClosePrice ?? 0;
   //     const normalizedSp = spUniform ? 1 : (spotPrice - spMin) / spRange;
-  //     const spColor = getColorFromValue(normalizedSp);
+  //     const spColor = getColorFromValueFromMinusOneToPlusOne(normalizedSp);
 
   //     const perpSpotDiff = item.perpSpotDiff ?? 0;
   //     const psColor = getColorFromChangeValue(perpSpotDiff, psMin, psMax);
 
   //     const volumeDelta = item.volumeDelta ?? 0;
   //     const normalizedVd = vdUniform ? 1 : (volumeDelta - vdMin) / vdRange;
-  //     const vdColor = getColorFromValue(normalizedVd);
+  //     const vdColor = getColorFromValueFromMinusOneToPlusOne(normalizedVd);
 
   //     const volumeDeltaChange = item.volumeDeltaChange ?? 0;
   //     const vdChangeColor = getColorFromChangeValue(

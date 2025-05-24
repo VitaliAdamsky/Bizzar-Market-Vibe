@@ -2,7 +2,7 @@
 const TIMEFRAME_CONFIG = {
   "1h": { cron: "0 * * * *", delay: 0, ttl: 0 },
   "4h": { cron: "0 0/4 * * *", delay: 0, ttl: 0 },
-  "12h": { cron: "0 0,12 * * *", delay: 2 * 60 * 1000, ttl: 0 },
+  "12h": { cron: "0 0,12 * * *", delay: 1 * 60 * 1000, ttl: 0 },
   D: { cron: "0 0 * * *", delay: 3 * 60 * 1000, ttl: 0 },
 };
 

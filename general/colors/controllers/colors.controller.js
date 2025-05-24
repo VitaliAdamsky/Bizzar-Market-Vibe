@@ -1,5 +1,5 @@
 const { getColorsCache } = require("@general/colors/cache/service.js");
-const { postColors } = require("@general/colors/functions/post-colors.js");
+const { postColors } = require("@general/colors/functions/http/post-colors.js");
 const { initializeColorsCache } = require("@general/colors/cache/service.js");
 
 // POST /api/colors → Updates the color object in cache
