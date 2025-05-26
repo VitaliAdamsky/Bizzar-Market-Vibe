@@ -33,6 +33,7 @@ async function initializeKlineStore() {
           `❌ Kline [${timeframe}] failed to initialize cache:`,
           err.message || err
         );
+        console.log(err.stack);
       }
     }, delayMs);
   }

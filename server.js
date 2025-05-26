@@ -62,14 +62,14 @@ async function main() {
     await initializeConfig();
     await initializeColorsCache();
     await initializeCoinsStore();
-    //await initializeKlineStore();
-    await initializeOpenInterestStore();
-    await initializeFundingRateStore();
+    await initializeKlineStore();
+    //await initializeOpenInterestStore();
+    //await initializeFundingRateStore();
 
     const app = await initializeApp();
 
-    //scheduleKlineJobs();
-    scheduleOpenInterestJobs();
+    scheduleKlineJobs();
+    //scheduleOpenInterestJobs();
     //scheduleFundingRateJobs();
 
     //scheduleSelfPing();

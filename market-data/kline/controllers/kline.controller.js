@@ -11,7 +11,6 @@ const {
 async function getKlineDataController(req, res, next) {
   try {
     const { timeframe } = validateRequestParams(req.query);
-    console.log("CONTROLLER timeframe", timeframe);
     const data = getKlineCache(timeframe);
     // Set headers for JSON response
     res.setHeader("Content-Type", "application/json");

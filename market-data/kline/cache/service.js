@@ -14,7 +14,7 @@ function setKlineCache(tf, data) {
   assertTimeframe(tf);
 
   if (typeof data !== "object") {
-    throw new Error("KLINE CACHE: Data must be a JSON-serializable object.");
+    throw new Error("❌ KLINE CACHE: Data must be a JSON-serializable object.");
   }
 
   const compressedBuffer = compressToGzipBase64(data);
