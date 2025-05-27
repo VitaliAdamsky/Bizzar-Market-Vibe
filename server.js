@@ -62,7 +62,8 @@ async function main() {
     await initializeConfig();
     await initializeColorsCache();
     await initializeCoinsStore();
-    //await initializeKlineStore();
+
+    await initializeKlineStore();
     await initializeOpenInterestStore();
     await initializeFundingRateStore();
 
