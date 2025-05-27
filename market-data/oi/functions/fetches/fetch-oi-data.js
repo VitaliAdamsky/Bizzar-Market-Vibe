@@ -15,6 +15,10 @@ const {
   normalizeOpenInterestData,
 } = require("@oi/functions/processing/normalize-oi-data.js");
 
+const {
+  getServantConfig,
+} = require("@global/servants/servant-config/service.js");
+
 async function fetchOpenInterestData(timeframe, limit) {
   let coins; // Declare coins as a variable
   const isDaily = timeframe === "D";
@@ -51,7 +55,13 @@ async function fetchOpenInterestData(timeframe, limit) {
     .map((coinData) => coinData.symbol);
   console.log("Empty coins:", emptyCoins);
 
-  return { expirationTime, timeframe, data };
+  return {
+    projectName: getServantConfig().projectName,
+    dataType: "oi",
+    expirationTime,
+    timeframe,
+    data,
+  };
 }
 
 module.exports = { fetchOpenInterestData };

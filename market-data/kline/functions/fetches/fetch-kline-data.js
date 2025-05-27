@@ -37,6 +37,10 @@ const {
   addFailedCoinsToCache,
 } = require("@kline/functions/processing/add-failed-coins-to-cache.js");
 
+const {
+  getServantConfig,
+} = require("@global/servants/servant-config/service.js");
+
 async function fetchKlineData(timeframe, limit) {
   const { binancePerps, binanceSpot, bybitPerps, bybitSpot } =
     getBinanceDominantCache();
@@ -99,7 +103,19 @@ async function fetchKlineData(timeframe, limit) {
 
   //4. Normalize and merge
   data = normalizeKlineData([...data]);
-  return { timeframe, expirationTime, data };
+  data = data.filter((coinData) => coinData.data.length > 0);
+  const emptyCoins = data
+    .filter((coinData) => coinData.data.length === 0)
+    .map((coinData) => coinData.symbol);
+  console.log("Empty coins:", emptyCoins);
+
+  return {
+    projectName: getServantConfig().projectName,
+    dataType: "kline",
+    timeframe,
+    expirationTime,
+    data,
+  };
 }
 
 module.exports = { fetchKlineData };

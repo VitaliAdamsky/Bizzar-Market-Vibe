@@ -115,7 +115,7 @@ function normalizeKlineData(marketDataArray) {
       const volumeDelta = item.volumeDelta ?? 0;
       const normalizedVd = vdUniform ? 1 : (volumeDelta - vdMin) / vdRange;
       const vdColor = getGradientColorForNegativeRange(
-        normalizedVd,
+        volumeDelta,
         colors.volumeDeltaMin,
         colors.volumeDeltaMax
       );

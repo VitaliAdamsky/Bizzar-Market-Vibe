@@ -31,7 +31,7 @@ async function initializeServantsConfig() {
       limitFr: Number(secrets.LIMIT_FR) || 53,
       delayInMinutesShort: 5,
       delayInMinutesLong: 10,
-      projectName: "Render-Market-Vibe",
+      projectName: "Bizzar-Market-Vibe",
     };
 
     servantConfigCache.set("config", config);

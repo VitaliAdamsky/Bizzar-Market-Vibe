@@ -17,7 +17,9 @@ const {
   getNearestExpirationTime,
 } = require("@shared/utils/get-nearest-expiration-time.js");
 
-const { stats } = require("@fr/functions/processing/stats.js");
+const {
+  getServantConfig,
+} = require("@global/servants/servant-config/service.js");
 
 async function fetchFundingRateData(limit) {
   const { binancePerps, bybitPerps } = getBinanceDominantCache();
@@ -36,7 +38,12 @@ async function fetchFundingRateData(limit) {
 
   data = normalizeFundingRateData(data);
 
-  return { expirationTime, data };
+  return {
+    projectName: getServantConfig().projectName,
+    dataType: "fr",
+    expirationTime,
+    data,
+  };
 }
 
 module.exports = { fetchFundingRateData };
